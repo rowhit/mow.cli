@@ -74,7 +74,7 @@ func (cli *Cli) parse(args []string, entry, inFlow, outFlow *step) error {
 }
 
 func (cli *Cli) versionSetAndRequested(args []string) bool {
-	return cli.version != nil && cli.isArgSet(args, cli.version.option.names)
+	return cli.version != nil && cli.isFlagSet(args, cli.version.option.names)
 }
 
 /*
