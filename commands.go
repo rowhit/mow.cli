@@ -275,13 +275,22 @@ func (c *Cmd) doInit() error {
 }
 
 func (c *Cmd) onError(err error) {
-	switch c.ErrorHandling {
-	case flag.ExitOnError:
-		exiter(2)
-	case flag.PanicOnError:
-		panic(err)
-	}
+	switch err {
+	case errHelpRequested:
+		fallthrough
+	case errVersionRequested:
+		if c.ErrorHandling == flag.ExitOnError {
+			exiter(0)
+		}
 
+	default:
+		switch c.ErrorHandling {
+		case flag.ExitOnError:
+			exiter(2)
+		case flag.PanicOnError:
+			panic(err)
+		}
+	}
 }
 
 /*
@@ -396,7 +405,7 @@ func (c *Cmd) formatDescription(desc, envVar string) string {
 func (c *Cmd) parse(args []string, entry, inFlow, outFlow *step) error {
 	if c.helpRequested(args) {
 		c.PrintLongHelp()
-		exiter(0)
+		c.onError(errHelpRequested)
 		return nil
 	}
 

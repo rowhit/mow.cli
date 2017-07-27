@@ -67,7 +67,7 @@ func (cli *Cli) parse(args []string, entry, inFlow, outFlow *step) error {
 	// After that, we just call Cmd.parse() for the default behavior
 	if cli.versionSetAndRequested(args) {
 		cli.PrintVersion()
-		exiter(0)
+		cli.onError(errVersionRequested)
 		return nil
 	}
 	return cli.Cmd.parse(args, entry, inFlow, outFlow)

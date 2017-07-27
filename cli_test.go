@@ -201,6 +201,34 @@ func TestContinueOnError(t *testing.T) {
 	require.False(t, called, "Exec should NOT have been called")
 }
 
+func TestContinueOnErrorWithHelpAndVersion(t *testing.T) {
+	defer exitShouldNotCalled(t)()
+	defer suppressOutput()()
+
+	app := App("say", "")
+	app.Version("v", "1.0")
+	app.String(StringOpt{Name: "f", Value: "", Desc: ""})
+	app.Spec = "-f"
+	app.ErrorHandling = flag.ContinueOnError
+	called := false
+	app.Action = func() {
+		called = true
+	}
+
+	{
+		err := app.Run([]string{"say", "-h"})
+		require.Nil(t, err)
+		require.False(t, called, "Exec should NOT have been called")
+	}
+
+	{
+		err := app.Run([]string{"say", "-v"})
+		require.Nil(t, err)
+		require.False(t, called, "Exec should NOT have been called")
+	}
+
+}
+
 func TestExitOnError(t *testing.T) {
 	defer suppressOutput()()
 
@@ -208,10 +236,45 @@ func TestExitOnError(t *testing.T) {
 	defer exitShouldBeCalledWith(t, 2, &exitCalled)()
 
 	app := App("x", "")
+	app.ErrorHandling = flag.ExitOnError
 	app.Spec = "Y"
 
 	app.String(StringArg{Name: "Y", Value: "", Desc: ""})
+
 	app.Run([]string{"x", "y", "z"})
+	require.True(t, exitCalled, "exit should have been called")
+}
+
+func TestExitOnErrorWithHelp(t *testing.T) {
+	defer suppressOutput()()
+
+	exitCalled := false
+	defer exitShouldBeCalledWith(t, 0, &exitCalled)()
+
+	app := App("x", "")
+	app.Spec = "Y"
+	app.ErrorHandling = flag.ExitOnError
+
+	app.String(StringArg{Name: "Y", Value: "", Desc: ""})
+
+	app.Run([]string{"x", "-h"})
+	require.True(t, exitCalled, "exit should have been called")
+}
+
+func TestExitOnErrorWithVersion(t *testing.T) {
+	defer suppressOutput()()
+
+	exitCalled := false
+	defer exitShouldBeCalledWith(t, 0, &exitCalled)()
+
+	app := App("x", "")
+	app.Version("v", "1.0")
+	app.Spec = "Y"
+	app.ErrorHandling = flag.ExitOnError
+
+	app.String(StringArg{Name: "Y", Value: "", Desc: ""})
+
+	app.Run([]string{"x", "-v"})
 	require.True(t, exitCalled, "exit should have been called")
 }
 
